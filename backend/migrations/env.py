@@ -1,5 +1,6 @@
+import os
+
 from alembic import context
-from pulseforge.core.settings import get_settings
 from pulseforge.db.models import Base
 from sqlalchemy import create_engine, pool
 
@@ -8,7 +9,10 @@ target_metadata = Base.metadata
 
 
 def _url() -> str:
-    return config.get_main_option("sqlalchemy.url") or get_settings().database_url
+    url = config.get_main_option("sqlalchemy.url") or os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL is not set (and no sqlalchemy.url was configured)")
+    return url
 
 
 def run_migrations_offline() -> None:

@@ -164,7 +164,7 @@ def test_unhandled_error_hides_details(app_with_routes):  # route raises Runtime
   - `@dataclass(frozen=True) class Claims: sub: uuid.UUID; email: str | None`
   - `class AuthError(Exception)` (maps to 401) and `class AuthUnavailable(Exception)` (maps to 503)
   - `SigningKeyGetter = Callable[[str], Any]` (raw token → public key)
-  - `class TokenVerifier: __init__(self, *, issuer: str, audience: str, get_signing_key: SigningKeyGetter)`; `verify(self, token: str) -> Claims`; `@classmethod for_supabase(cls, settings: Settings) -> TokenVerifier`, which uses `jwt.PyJWKClient(settings.jwks_url, cache_keys=True, lifespan=3600)` and `.get_signing_key_from_jwt(token).key`.
+  - `class TokenVerifier: __init__(self, *, issuer: str, audience: str, get_signing_key: SigningKeyGetter)`; `verify(self, token: str) -> Claims`; `@classmethod for_supabase(cls, settings: Settings) -> TokenVerifier`, which uses `jwt.PyJWKClient(settings.jwks_url, lifespan=600, timeout=5)` (no `cache_keys`: its per-key cache never expires, so revoked keys would stay valid) and `.get_signing_key_from_jwt(token).key`.
   - `ALGORITHMS = ["ES256", "RS256"]`, `LEEWAY_SECONDS = 30`
 - Conftest fixtures: `private_key` (`ec.generate_private_key(ec.SECP256R1())`), `make_token(**claims_overrides) -> str` (defaults: `sub` new uuid4, `email "dj@example.com"`, `aud "authenticated"`, `iss "https://test.supabase.co/auth/v1"`, `role "authenticated"`, `exp now+3600`; a value of `None` removes that claim; signed ES256 with header `kid "test-key"`), `verifier` (getter returns `private_key.public_key()`).
 

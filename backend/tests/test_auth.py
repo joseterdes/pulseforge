@@ -162,3 +162,44 @@ def test_jwks_getter_keeps_decode_error_as_auth_error():
     v = TokenVerifier(issuer=ISSUER, audience="authenticated", get_signing_key=getter)
     with pytest.raises(AuthError):
         v.verify("abc.def")
+
+
+def test_for_supabase_does_not_trust_revoked_keys_after_jwks_cache_expires(monkeypatch):
+    import jwt.jwk_set_cache as jwk_set_cache_module
+    from jwt.algorithms import ECAlgorithm
+    from pulseforge.core.settings import Settings
+
+    k1, k2 = ec.generate_private_key(ec.SECP256R1()), ec.generate_private_key(ec.SECP256R1())
+
+    def jwk(kid, key):
+        return {**ECAlgorithm.to_jwk(key.public_key(), as_dict=True), "kid": kid, "use": "sig", "alg": "ES256"}
+
+    published = {"keys": [jwk("k1", k1), jwk("k2", k2)]}
+    fetches: list[int] = []
+
+    def fake_fetch(self):
+        fetches.append(1)
+        self.jwk_set_cache.put(published)
+        return published
+
+    monkeypatch.setattr(jwt.PyJWKClient, "fetch_data", fake_fetch)
+    offset = [0.0]
+    real_monotonic = time.monotonic
+    monkeypatch.setattr(
+        jwk_set_cache_module, "time", type("T", (), {"monotonic": staticmethod(lambda: real_monotonic() + offset[0])})
+    )
+
+    verifier = TokenVerifier.for_supabase(Settings(database_url="postgresql+psycopg://x@h/d", supabase_url="https://test.supabase.co"))
+    token = jwt.encode({**_valid_claims()}, k1, algorithm="ES256", headers={"kid": "k1"})
+
+    assert verifier.verify(token).sub
+    assert verifier.verify(token).sub
+    assert len(fetches) == 1  # served from the JWK-set cache
+
+    published["keys"] = [jwk("k2", k2)]  # k1 revoked
+    assert verifier.verify(token).sub  # still within the cache lifespan
+    fetches_before_expiry = len(fetches)
+    offset[0] = 601  # cache lifespan is 600 s
+    with pytest.raises(AuthError):
+        verifier.verify(token)
+    assert len(fetches) > fetches_before_expiry  # expiry forced a fresh fetch

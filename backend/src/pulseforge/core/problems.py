@@ -56,6 +56,8 @@ def _phrase(status: int) -> str:
 def install_problem_handlers(app: FastAPI) -> None:
     @app.exception_handler(Problem)
     async def _problem(request: Request, exc: Problem) -> JSONResponse:
+        if exc.status >= 500:
+            logger.error("Server problem %s on %s %s: %s", exc.status, request.method, request.url.path, exc.title)
         return _response(exc.status, exc.title, exc.detail, type_=exc.type_, headers=exc.headers)
 
     @app.exception_handler(StarletteHTTPException)

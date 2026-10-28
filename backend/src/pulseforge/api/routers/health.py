@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 
 from pulseforge.core.problems import Problem
 
@@ -17,6 +18,6 @@ def readyz(request: Request) -> dict[str, str]:
     try:
         with request.app.state.session_factory() as session:
             session.execute(text("SELECT 1"))
-    except OperationalError as exc:
+    except (OperationalError, PoolTimeoutError) as exc:
         raise Problem(503, "Service Unavailable", "database unreachable") from exc
     return {"status": "ok"}

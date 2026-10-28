@@ -85,7 +85,18 @@ def test_patch_me_bumps_updated_at_and_keeps_unsent_fields(api, make_token, db_s
     assert after > before
 
 
-@pytest.mark.parametrize("payload", [{"plan": "pro"}, {"ui_mode": "PRO"}, {"display_name": ""}, {"display_name": "x" * 51}])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"plan": "pro"},
+        {"ui_mode": "PRO"},
+        {"display_name": ""},
+        {"display_name": "x" * 51},
+        {"display_name": "a\u0000b"},
+        {"display_name": "a\nb"},
+        {"display_name": "   "},
+    ],
+)
 def test_patch_me_rejects_plan_and_bad_values(api, make_token, payload):
     h = auth(make_token())
     r = api.patch("/v1/me", headers=h, json=payload)
@@ -113,3 +124,14 @@ def test_me_returns_503_when_jwks_unreachable(settings, migrated_db, make_token)
     with TestClient(create_app(settings, verifier=v)) as c:
         r = c.get("/v1/me", headers=auth(make_token()))
     assert r.status_code == 503 and r.headers["content-type"].startswith("application/problem+json")
+
+
+def test_openapi_declares_bearer_security_for_me(settings, verifier):
+    spec = create_app(settings, verifier=verifier).openapi()
+    schemes = spec["components"]["securitySchemes"]
+    names = [n for n, v in schemes.items() if v["type"] == "http" and v["scheme"].lower() == "bearer"]
+    assert names
+    for path in ("/v1/me", "/v1/me/tos"):
+        for op in spec["paths"][path].values():
+            assert {names[0]: []} in op["security"]
+    assert "security" not in spec["paths"]["/healthz"]["get"]

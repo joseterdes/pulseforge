@@ -58,7 +58,8 @@ class TokenVerifier:
 
     @classmethod
     def for_supabase(cls, settings: Settings) -> TokenVerifier:
-        client = jwt.PyJWKClient(settings.jwks_url, cache_keys=True, lifespan=3600)
+        # No cache_keys: its per-kid LRU never expires, so revoked keys would stay valid.
+        client = jwt.PyJWKClient(settings.jwks_url, lifespan=600, timeout=5)
         return cls(
             issuer=settings.jwt_issuer,
             audience=settings.jwt_audience,
