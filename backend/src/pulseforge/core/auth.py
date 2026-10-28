@@ -32,6 +32,24 @@ class AuthUnavailable(Exception):
     """The signing keys could not be fetched (maps to 503)."""
 
 
+def _jwks_getter(client: jwt.PyJWKClient) -> SigningKeyGetter:
+    """Return the PyJWK itself so PyJWT enforces the key's algorithm binding.
+
+    Fetch problems that are not PyJWT errors (non-JSON body, connection reset)
+    mean the JWKS is unavailable (503); a bad token's PyJWTError stays a 401.
+    """
+
+    def get(token: str) -> Any:
+        try:
+            return client.get_signing_key_from_jwt(token)
+        except jwt.PyJWTError:
+            raise
+        except (ValueError, OSError) as exc:
+            raise AuthUnavailable("signing keys unavailable") from exc
+
+    return get
+
+
 class TokenVerifier:
     def __init__(self, *, issuer: str, audience: str, get_signing_key: SigningKeyGetter) -> None:
         self._issuer = issuer
@@ -44,7 +62,7 @@ class TokenVerifier:
         return cls(
             issuer=settings.jwt_issuer,
             audience=settings.jwt_audience,
-            get_signing_key=lambda token: client.get_signing_key_from_jwt(token).key,
+            get_signing_key=_jwks_getter(client),
         )
 
     def verify(self, token: str) -> Claims:
@@ -66,7 +84,7 @@ class TokenVerifier:
                 options={"require": ["exp", "sub", "aud", "iss"]},
             )
             sub = uuid.UUID(str(payload["sub"]))
-        except (jwt.InvalidTokenError, ValueError) as exc:
+        except (jwt.PyJWTError, ValueError) as exc:
             raise AuthError("invalid token") from exc
 
         email = payload.get("email")

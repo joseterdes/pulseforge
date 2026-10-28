@@ -1,10 +1,18 @@
+import base64
+import json
 import time
 import uuid
 
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
-from pulseforge.core.auth import AuthError, AuthUnavailable, Claims, TokenVerifier
+from pulseforge.core.auth import (
+    AuthError,
+    AuthUnavailable,
+    Claims,
+    TokenVerifier,
+    _jwks_getter,
+)
 
 ISSUER = "https://test.supabase.co/auth/v1"
 
@@ -78,3 +86,79 @@ def test_unknown_key_id_rejected(make_token):
 def test_jwks_unreachable_raises_unavailable(make_token):
     with pytest.raises(AuthUnavailable):
         _verifier_raising(jwt.PyJWKClientConnectionError("down")).verify(make_token())
+
+
+def _jwk(public_key, kind) -> jwt.PyJWK:
+    if kind == "ec":
+        data = jwt.algorithms.ECAlgorithm.to_jwk(public_key, as_dict=True)
+    else:
+        data = jwt.algorithms.RSAAlgorithm.to_jwk(public_key, as_dict=True)
+    return jwt.PyJWK.from_dict(data)
+
+
+def test_rs256_header_against_ec_key_rejected(private_key):
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    token = jwt.encode(_valid_claims(), rsa_key, algorithm="RS256", headers={"kid": "test-key"})
+    v = TokenVerifier(
+        issuer=ISSUER,
+        audience="authenticated",
+        get_signing_key=lambda _t: _jwk(private_key.public_key(), "ec"),
+    )
+    with pytest.raises(AuthError):
+        v.verify(token)
+
+
+def test_es256_header_against_p384_key_rejected():
+    p384 = ec.generate_private_key(ec.SECP384R1())
+    signed = jwt.encode(_valid_claims(), p384, algorithm="ES384")
+    forged = base64.urlsafe_b64encode(b'{"alg":"ES256","typ":"JWT"}').rstrip(b"=").decode()
+    token = ".".join([forged, *signed.split(".")[1:]])
+    v = TokenVerifier(
+        issuer=ISSUER,
+        audience="authenticated",
+        get_signing_key=lambda _t: _jwk(p384.public_key(), "ec"),
+    )
+    with pytest.raises(AuthError):
+        v.verify(token)
+
+
+def test_es256_header_against_rsa_key_rejected(private_key):
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    token = jwt.encode(_valid_claims(), private_key, algorithm="ES256")
+    v = TokenVerifier(
+        issuer=ISSUER,
+        audience="authenticated",
+        get_signing_key=lambda _t: _jwk(rsa_key.public_key(), "rsa"),
+    )
+    with pytest.raises(AuthError):
+        v.verify(token)
+
+
+class _FakeClient:
+    def __init__(self, exc: Exception) -> None:
+        self._exc = exc
+
+    def get_signing_key_from_jwt(self, _token: str):
+        raise self._exc
+
+
+@pytest.mark.parametrize(
+    "exc", [json.JSONDecodeError("Expecting value", "<html>", 0), ConnectionResetError("reset")]
+)
+def test_jwks_garbage_or_dropped_is_unavailable(make_token, exc):
+    v = TokenVerifier(
+        issuer=ISSUER, audience="authenticated", get_signing_key=_jwks_getter(_FakeClient(exc))
+    )
+    with pytest.raises(AuthUnavailable):
+        v.verify(make_token())
+
+
+def test_jwks_getter_keeps_decode_error_as_auth_error():
+    getter = _jwks_getter(_FakeClient(jwt.DecodeError("bad token")))
+    v = TokenVerifier(issuer=ISSUER, audience="authenticated", get_signing_key=getter)
+    with pytest.raises(AuthError):
+        v.verify("abc.def")
