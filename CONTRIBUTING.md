@@ -14,7 +14,7 @@ Thanks for your interest! PulseForge is early: the plan is in [docs/BLUEPRINT.md
 ## Checks to run locally
 
 ```bash
-pip install ruff && ruff check .
+pip install ruff==0.17.3 && ruff check .   # same version as CI
 cd phase0 && python3 bench.py run --providers fake --quick   # pipeline smoke test, no GPU needed
 ```
 
