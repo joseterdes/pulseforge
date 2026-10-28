@@ -51,6 +51,35 @@ jobs:
           grep -q '^| fake | yes | 2/2 |' "$REPORT"
           grep -Eq '^\| fake \| [0-9.]+ \| 100% \|' "$REPORT"   # click track BPM detected within ±2
 
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/pulseforge_test
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pulseforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pulseforge_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: uv sync --extra api --locked
+      - run: uv run pytest -v
+
   secrets:
     runs-on: ubuntu-latest
     permissions:

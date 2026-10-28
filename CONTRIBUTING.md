@@ -18,6 +18,13 @@ pip install ruff==0.17.3 && ruff check .   # same version as CI
 cd phase0 && python3 bench.py run --providers fake --quick   # pipeline smoke test, no GPU needed
 ```
 
+For backend changes, start Postgres (`docker compose -f infra/compose.yml up -d`), set `TEST_DATABASE_URL` and run the tests (see [backend/README.md](backend/README.md)):
+
+```bash
+export TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge_test   # PowerShell: $env:TEST_DATABASE_URL = "..."
+cd backend && uv run pytest -v
+```
+
 CI also runs the evaluation step and a secret scan (gitleaks).
 
 ## Ground rules

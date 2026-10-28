@@ -21,6 +21,13 @@ AI club-music app: users paste a song link or upload audio and get an original t
 - `main` is protected. Work on a branch (`feat/…`, `fix/…`, `docs/…`, `chore/…`), open a PR with `gh pr create`, wait for CI (`lint`, `phase0`, `secrets`), then squash-merge.
 - Never commit audio, model weights, `phase0/results/`, `phase0/envs/` or `.env` files.
 
+## Backend (`backend/`)
+
+- Setup: `docker compose -f infra/compose.yml up -d`, then `cd backend && uv sync --extra api`. Details in [backend/README.md](backend/README.md).
+- Test: set `TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge_test`, then `cd backend && uv run pytest -v`.
+- Migrate: `uv run alembic upgrade head`. Run: `uv run uvicorn pulseforge.api.main:app --reload`.
+- Lint (repo root): `uvx ruff@0.17.3 check .`
+
 ## Machines
 
 - Laptop: no NVIDIA GPU. Use the `fake` provider.
