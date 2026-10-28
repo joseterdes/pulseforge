@@ -17,29 +17,32 @@ You need [uv](https://docs.astral.sh/uv/) and Docker Desktop (running).
 # 1. Start Postgres (port 54322)
 docker compose -f infra/compose.yml up -d     # run from the repo root
 
+# 1b. One time only: create the dev database (the tests use pulseforge_test and wipe it)
+docker compose -f infra/compose.yml exec postgres createdb -U postgres pulseforge
+
 # 2. Install dependencies
 cd backend
-uv sync --extra api
+uv sync --extra api --locked
 ```
 
 Settings come from environment variables (or a gitignored `backend/.env` file):
 
 | Variable | Meaning | Default |
 |---|---|---|
-| `DATABASE_URL` | Postgres connection, e.g. `postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge_test` | required |
+| `DATABASE_URL` | Postgres connection, e.g. `postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge` (your dev database, not the test one) | required |
 | `SUPABASE_URL` | Your Supabase project URL, used to fetch the signing keys | required |
 | `JWT_AUDIENCE` | Expected token audience | `authenticated` |
 | `TOS_VERSION` | Current terms version | `v1` |
 
 ```bash
 # bash
-export DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge_test
+export DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge
 export SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 ```
 
 ```powershell
 # PowerShell
-$env:DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge_test"
+$env:DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:54322/pulseforge"
 $env:SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"
 ```
 
