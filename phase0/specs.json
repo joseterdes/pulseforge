@@ -1,0 +1,88 @@
+{
+  "_comment": "Phase 0 benchmark specs. Keys use sharps only (C# not Db) so evaluate.py can compare them. 'long': true adds a 3-minute render for long-form providers.",
+  "specs": [
+    {
+      "id": "deep_house",
+      "genre": "deep house",
+      "bpm": 122,
+      "key": "D minor",
+      "moods": ["warm", "soulful", "late-night"],
+      "instruments": ["round kick", "deep sub bass", "jazzy electric piano chords", "crisp shakers"],
+      "long": true
+    },
+    {
+      "id": "tech_house",
+      "genre": "tech house",
+      "bpm": 126,
+      "key": "A minor",
+      "moods": ["groovy", "hypnotic", "energetic"],
+      "instruments": ["punchy kick", "rolling bassline", "shuffled hi-hats", "percussive stabs"],
+      "long": true
+    },
+    {
+      "id": "peak_techno",
+      "genre": "peak-time techno",
+      "bpm": 132,
+      "key": "F minor",
+      "moods": ["dark", "driving", "intense"],
+      "instruments": ["rumbling kick", "metallic percussion", "hypnotic synth stab", "open hi-hats"]
+    },
+    {
+      "id": "melodic_techno",
+      "genre": "melodic techno",
+      "bpm": 124,
+      "key": "C minor",
+      "moods": ["emotional", "cinematic", "dreamy"],
+      "instruments": ["deep kick", "pulsing arpeggiated synth", "lush pads", "warm bassline"],
+      "long": true
+    },
+    {
+      "id": "trance",
+      "genre": "uplifting trance",
+      "bpm": 138,
+      "key": "A# minor",
+      "moods": ["euphoric", "uplifting"],
+      "instruments": ["driving kick", "rolling offbeat bass", "supersaw lead", "big reverb pads"]
+    },
+    {
+      "id": "liquid_dnb",
+      "genre": "liquid drum and bass",
+      "bpm": 174,
+      "key": "E minor",
+      "moods": ["smooth", "atmospheric"],
+      "instruments": ["breakbeat drums", "deep reese bass", "airy pads", "soft piano"]
+    },
+    {
+      "id": "afro_house",
+      "genre": "afro house",
+      "bpm": 122,
+      "key": "G minor",
+      "moods": ["tribal", "organic", "hypnotic"],
+      "instruments": ["deep kick", "congas and shakers", "marimba melody", "warm bass"]
+    },
+    {
+      "id": "amapiano",
+      "genre": "amapiano",
+      "bpm": 113,
+      "key": "F major",
+      "moods": ["laid-back", "jazzy"],
+      "instruments": ["log drum bass", "shakers", "soft piano chords", "sparse kick"]
+    },
+    {
+      "id": "uk_garage",
+      "genre": "uk garage",
+      "bpm": 132,
+      "key": "B minor",
+      "moods": ["bouncy", "swung"],
+      "instruments": ["2-step drums", "swung hi-hats", "sub bass", "chopped organ chords"]
+    },
+    {
+      "id": "disco_house",
+      "genre": "disco house",
+      "bpm": 124,
+      "key": "E major",
+      "moods": ["funky", "bright", "uplifting"],
+      "instruments": ["four-on-the-floor kick", "filtered disco strings", "slap bass", "open hi-hats"]
+    }
+  ]
+}

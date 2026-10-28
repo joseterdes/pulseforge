@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+
+# Phase 0: environments and generated audio are large and machine-specific
+phase0/envs/
+phase0/results/

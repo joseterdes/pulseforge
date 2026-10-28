@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install ruff
+      - run: ruff check .
+
+  phase0:
+    # Runs the whole Phase 0 kit end-to-end with the fake provider (no GPU needed).
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: phase0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: .github/workflows/ci.yml
+      - run: pip install numpy librosa pyloudnorm soundfile
+      - name: Benchmark, evaluate and report
+        run: |
+          python bench.py run --providers fake --quick
+          RUN="results/$(ls results)"
+          python evaluate.py metrics "$RUN"
+          python evaluate.py blind "$RUN"
+          python evaluate.py report "$RUN"
+      - name: Check the report
+        run: |
+          REPORT="$(ls results/*/report.md)"
+          grep -q '^| fake | yes | 2/2 |' "$REPORT"
+          grep -Eq '^\| fake \| [0-9.]+ \| 100% \|' "$REPORT"   # click track BPM detected within ±2
+
+  secrets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

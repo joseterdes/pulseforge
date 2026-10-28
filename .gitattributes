@@ -1,0 +1,6 @@
+# Store every text file with LF in the repo, whatever each contributor's git settings are.
+* text=auto
+
+# Scripts run inside Linux (WSL2, Docker); Windows line endings would break them.
+*.sh text eol=lf
+*.py text eol=lf

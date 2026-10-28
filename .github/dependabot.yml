@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Keeps the GitHub Actions used in CI up to date. Add pip/npm here once the app has dependency files.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
