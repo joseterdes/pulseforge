@@ -856,6 +856,7 @@ Major labels sued Suno and Udio in 2024 over training data and have since moved 
 3. **Region:** Singapore, the closest to the Philippines (§3.1).
 4. **GPU:** the laptop has no NVIDIA GPU. The home PC's **RTX 3060 12 GB** runs Phase 0 and is the main GPU worker during the beta, with Modal as automatic fallback (§3.2, §4.3).
 5. **Song input:** users paste a link from any major platform (Spotify, YouTube, Apple Music, SoundCloud, Deezer, Tidal, Beatport, Mixcloud, TikTok and more, via pluggable link resolvers), or upload audio. A link only identifies the song. The default result is an original track "inspired by" it; true remixes come in v1.2, for owned or licensed uploads only (§1.6).
+6. **Backend database access:** synchronous SQLAlchemy 2 with psycopg 3 for the MVP. It's simpler to write and test, and load is small. Move to async only if load ever demands it.
 
 **Still open:**
 - Oracle home region: try Singapore first. If no free ARM capacity turns up after a few days, pick Tokyo or Osaka; the choice is permanent.

@@ -6,7 +6,12 @@ _Last updated: 2026-10-28_
 
 - **Architecture plan:** done, see [BLUEPRINT.md](BLUEPRINT.md) (v0.2). Settled decisions are listed in §20.
 - **Phase 0 (model test):** the kit is ready in [phase0/](../phase0/README.md) and was tested end-to-end on the laptop with the fake provider. It has **not yet run on a real GPU.**
-- **Next:** set up the home PC ([phase0/SETUP_HOME_PC.md](../phase0/SETUP_HOME_PC.md)), run the smoke test, run the full benchmark, do the blind listening test, and write `phase0/RESULTS.md` with the chosen default model.
+- **Backend foundation (M1a):** done. FastAPI in [backend/](../backend/README.md) with Supabase login-token checks, Postgres + migrations, health checks and `/v1/me`.
+- **Next, in order:**
+  1. Local MVP plan on the laptop: [docs/superpowers/plans/2026-10-28-local-mvp.md](superpowers/plans/2026-10-28-local-mvp.md).
+  2. Phase 0 on the home PC: set up ([phase0/SETUP_HOME_PC.md](../phase0/SETUP_HOME_PC.md)), run the smoke test, run the full benchmark, do the blind listening test, and write `phase0/RESULTS.md` with the chosen default model.
+  3. **M1b** (web app + Supabase login): needs a free Supabase project in Singapore.
+  4. **M1c** (deploy): needs Oracle Cloud, Cloudflare and Sentry accounts.
 
 ## Machines
 
