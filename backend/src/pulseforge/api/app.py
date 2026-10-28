@@ -6,7 +6,7 @@ from pulseforge.api.routers import health
 from pulseforge.core.settings import Settings, get_settings
 
 if TYPE_CHECKING:  # TokenVerifier arrives in Task 3
-    from pulseforge.api.auth import TokenVerifier
+    from pulseforge.core.auth import TokenVerifier
 
 
 def create_app(settings: Settings | None = None, *, verifier: "TokenVerifier | None" = None) -> FastAPI:
