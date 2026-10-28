@@ -51,6 +51,20 @@ jobs:
           grep -q '^| fake | yes | 2/2 |' "$REPORT"
           grep -Eq '^\| fake \| [0-9.]+ \| 100% \|' "$REPORT"   # click track BPM detected within ±2
 
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: uv sync --extra api --locked
+      - run: uv run pytest -v
+
   secrets:
     runs-on: ubuntu-latest
     permissions:

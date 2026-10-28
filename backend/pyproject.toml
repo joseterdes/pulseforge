@@ -1,0 +1,27 @@
+[project]
+name = "pulseforge"
+version = "0.1.0"
+description = "PulseForge backend API"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+api = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic-settings",
+    "sqlalchemy>=2",
+    "psycopg[binary]>=3",
+    "alembic",
+    "pyjwt[crypto]>=2.8",
+]
+
+[dependency-groups]
+dev = ["pytest", "httpx"]
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
