@@ -13,12 +13,21 @@ PROBLEM_MEDIA_TYPE = "application/problem+json"
 
 
 class Problem(Exception):
-    def __init__(self, status: int, title: str, detail: str | None = None, *, type_: str = "about:blank"):
+    def __init__(
+        self,
+        status: int,
+        title: str,
+        detail: str | None = None,
+        *,
+        type_: str = "about:blank",
+        headers: dict[str, str] | None = None,
+    ):
         super().__init__(title)
         self.status = status
         self.title = title
         self.detail = detail
         self.type_ = type_
+        self.headers = headers
 
 
 def _response(
@@ -47,7 +56,7 @@ def _phrase(status: int) -> str:
 def install_problem_handlers(app: FastAPI) -> None:
     @app.exception_handler(Problem)
     async def _problem(request: Request, exc: Problem) -> JSONResponse:
-        return _response(exc.status, exc.title, exc.detail, type_=exc.type_)
+        return _response(exc.status, exc.title, exc.detail, type_=exc.type_, headers=exc.headers)
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(request: Request, exc: StarletteHTTPException) -> JSONResponse:
